@@ -146,6 +146,38 @@ namespace HospitalOperationsSystem
                 }
             }
         }
+        // Handles domain exceptions and prevents application crashes
+        private void ExecuteSafeOperation(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (ResourceLimitExceededException ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n[Resource Limit Has Been Reached] {ex.Message}");
+                Console.ResetColor();
+            }
+            catch (InvalidSystemStateException ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"\n[Domain Rule Violation] {ex.Message}");
+                Console.ResetColor();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n[UNEXPECTED ERROR] {ex.Message}");
+                Console.ResetColor();
+            }
+            finally
+            {
+                Console.ResetColor();
+                Console.WriteLine("\nPress Enter to return to main menu...");
+                Console.ReadLine();
+            }
+        }
 
         // FUNCTION 2: Add New Patients
 
@@ -186,18 +218,20 @@ namespace HospitalOperationsSystem
 
             newPatient.BedNumber = $"Ward-Bed-{Patients.Count + 1}"; //Auto generated bednumber
 
-            // Add initial active patient file
-            var initialFile = new PatientFile(DateTime.Now);
-            initialFile.Diagnosis.Add("Initial Admission");
-            newPatient.FileHistory.Add(initialFile);
+            ExecuteSafeOperation(() =>
+            {
+                //creates the initial file safely and checks domain rules
+                newPatient.ProcessAdmission(_currentUser?.EmployeeID ?? "EMP-101", "Initial Admission");
 
-            Patients.Add(newPatient);
+                Patients.Add(newPatient);
+            
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"\nPatient '{firstName} {lastName}' added successfully!");
-            Console.ResetColor();
-            Console.WriteLine("Press Enter to return to main menu...");
-            Console.ReadLine();
+               Console.ForegroundColor = ConsoleColor.Green;
+               Console.WriteLine($"\nPatient '{firstName} {lastName}' added successfully!");
+               Console.ResetColor();
+            });
+
+            
         }
 
         // FUNCTION 3: Delete Patients
@@ -216,6 +250,9 @@ namespace HospitalOperationsSystem
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("\nPatient not found.");
                 Console.ResetColor();
+                Console.WriteLine("Press Enter to return to main menu...");
+                Console.ReadLine();
+               
             }
             else
             {
@@ -225,19 +262,27 @@ namespace HospitalOperationsSystem
 
                 if (confirm.ToLower() == "y")
                 {
-                    Patients.Remove(patient);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("\nPatient record removed successfully.");
-                    Console.ResetColor();
+                    ExecuteSafeOperation(() =>
+                    {
+                        patient.DischargePatient(); // Attempt to discharge before deletion
+                        Patients.Remove(patient);
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("\nPatient record removed successfully.");
+                        Console.ResetColor();
+
+                    });
                 }
                 else
                 {
                     Console.WriteLine("\nDeletion cancelled.");
+                    Console.WriteLine("Press Enter to return to main menu...");
+                    Console.ReadLine();
                 }
+                
             }
 
-            Console.WriteLine("Press Enter to return to main menu...");
-            Console.ReadLine();
+           
         }
 
         // FUNCTION 4: Update Patient Records

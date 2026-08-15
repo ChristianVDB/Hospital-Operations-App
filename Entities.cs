@@ -57,7 +57,7 @@ namespace HospitalOperationsSystem
 
     // DERIVED CLASS: Patient (Inheritance & Encapsulation)
 
-    public class Patient : Person
+    public class Patient : Person, IMonitorable, IProcessable
     {
         public MedicalAid MedicalAidDetails { get; set; }
         public List<PatientFile> FileHistory { get; set; } = new();
@@ -67,11 +67,48 @@ namespace HospitalOperationsSystem
         public bool IsCritical { get; set; } = false;       // Alert status flag
         public string BedNumber { get; set; } = "Bed-Unassigned";
 
+        private const int MaxfileHistoryLimit = 10;         // Domain constraint
+
         public Patient(MedicalAid medicalAidDetails, string firstName, string lastName,
                        string idNumber, string phoneNumber, string emailAddress, Address address)
             : base(firstName, lastName, idNumber, phoneNumber, emailAddress, address)
         {
             MedicalAidDetails = medicalAidDetails;
+        }
+
+        // throws the invalid system state exception if the patient is in a critical state
+        public bool CheckVitalStatus()
+        {
+            if (OxygenLevel < 90 || HeartRate > 120) 
+            { 
+                IsCritical = true;
+                throw new InvalidSystemStateException($"Critical vittals detected for {FirstName} {LastName}");
+
+            }
+            return IsCritical;
+        }
+
+        //throws domain exceptions if constraints are violated, such as exceeding file history limit
+        public void ProcessAdmission(string doctorID, string initialDiagnosis)
+        {
+            if(FileHistory.Count >= MaxfileHistoryLimit)
+            {
+                throw new ResourceLimitExceededException($"Cannot admit patient {FirstName} {LastName}. File history limit reached.");
+            }
+            var newFile = new PatientFile(DateTime.Now);
+            newFile.AssignedDoctorID.Add(doctorID);
+            newFile.Diagnosis.Add(initialDiagnosis);
+            FileHistory.Add(newFile);
+        }
+
+        //throws an exception if there is no active file to discharge the patient from
+        public void DischargePatient()
+        {
+            var activeFile = FileHistory.FindLast(f => f.DischargeDate == null)
+            ?? throw new InvalidSystemStateException($"No active file found for patient {FirstName} {LastName} to discharge.");
+            
+            activeFile.DischargeDate = DateTime.Now;
+            IsCritical = false;
         }
 
         public override string GetSummary()
