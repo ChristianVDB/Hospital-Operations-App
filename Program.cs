@@ -13,10 +13,31 @@ namespace HospitalOperationsSystem
         public static void Main(string[] args)
         {
             var manager = new HospitalManager();
-            
+
             // Seed initial system state
             manager.Employees.AddRange(DataGenerator.GenerateEmployees());
             manager.Patients.AddRange(DataGenerator.GeneratePatients(5));
+
+            using var cts = new CancellationTokenSource();
+            var monitor = new PatientMonitor();
+
+            // Subscribe event handler
+            monitor.OnCriticalVitalsDetected += (sender, e) =>
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n\n[CRITICAL EVENT] Patient {e.PatientId} at {e.BedNumber}: {e.Message}");
+                Console.ResetColor();
+                Console.Write("Press Enter to continue...");
+            };
+
+            // Instantiate a standard C# Thread
+            Thread monitorThread = new Thread(() => monitor.StartMonitoring(manager.Patients, cts.Token))
+            {
+                IsBackground = true // Ensures thread terminates automatically if the process shuts down
+            };
+
+            // Start the thread independently of user menu input
+            monitorThread.Start();
 
             Console.Title = "Hospital Management & Operations System";
 
@@ -29,6 +50,9 @@ namespace HospitalOperationsSystem
             {
                 Console.WriteLine("\nAccess Denied. Exiting application.");
             }
+
+            cts.Cancel();           // Signal thread to stop
+            monitorThread.Join(1000); // Give thread up to 1 second to exit gracefully
         }
 
 
@@ -48,7 +72,7 @@ namespace HospitalOperationsSystem
                 Console.Write("Password: ");
                 string password = Console.ReadLine() ?? "";
 
-                var emp = Employees.FirstOrDefault(e => 
+                var emp = Employees.FirstOrDefault(e =>
                     e.Username.Equals(username, StringComparison.OrdinalIgnoreCase) && e.Password == password);
 
                 if (emp != null)
@@ -73,7 +97,7 @@ namespace HospitalOperationsSystem
         }
 
         // MENU NAVIGATION
-       
+
         public void MenuNavigation()
         {
             bool running = true;
@@ -124,7 +148,7 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 2: Add New Patients
-       
+
         private void AddNewPatient()
         {
             Console.Clear();
@@ -159,7 +183,9 @@ namespace HospitalOperationsSystem
             var medAid = new MedicalAid(medCompany, planName, policyNum, firstName, lastName, idNumber);
 
             var newPatient = new Patient(medAid, firstName, lastName, idNumber, phone, email, address);
-            
+
+            newPatient.BedNumber = $"Ward-Bed-{Patients.Count + 1}"; //Auto generated bednumber
+
             // Add initial active patient file
             var initialFile = new PatientFile(DateTime.Now);
             initialFile.Diagnosis.Add("Initial Admission");
@@ -175,7 +201,7 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 3: Delete Patients
-       
+
         private void DeletePatient()
         {
             Console.Clear();
@@ -215,7 +241,7 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 4: Update Patient Records
-      
+
         private void UpdatePatientRecord()
         {
             Console.Clear();
@@ -264,7 +290,7 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 5: View Patient Records
-      
+
         private void ViewPatientRecords()
         {
             Console.Clear();
@@ -289,7 +315,7 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 6: Search Patient File
-     
+
         private void SearchPatientFile()
         {
             Console.Clear();

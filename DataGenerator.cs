@@ -41,6 +41,10 @@ namespace HospitalOperationsSystem
                     $"patient{i}@gmail.com",
                     address
                 );
+                //Patient's vitals and designated bed number
+                patient.BedNumber = $"ICU-Bed-{100 + i}";    // Assigns Bed 101, Bed 102, Bed 103, etc.
+                patient.HeartRate = Rnd.Next(70, 95);        // Random starting heart rate
+                patient.OxygenLevel = Rnd.Next(93, 100);     // Random starting oxygen level
 
                 // Populate randomized initial file history
                 var file = new PatientFile(DateTime.Now.AddDays(-Rnd.Next(1, 30)));

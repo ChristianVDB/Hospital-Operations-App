@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HospitalOperationsSystem
 {
     // ABSTRACT BASE CLASS: Person (Demonstrates Abstraction & Encapsulation)
-  
+
     public abstract class Person
     {
         public string FirstName { get; set; }
@@ -14,7 +14,7 @@ namespace HospitalOperationsSystem
         public string EmailAddress { get; set; }
         public Address HomeAddress { get; set; }
 
-        protected Person(string firstName, string lastName, string idNumber, 
+        protected Person(string firstName, string lastName, string idNumber,
                          string phoneNumber, string emailAddress, Address address)
         {
             FirstName = firstName;
@@ -30,7 +30,7 @@ namespace HospitalOperationsSystem
     }
 
     // DERIVED CLASS: Employee (Inheritance & Encapsulation)
-   
+
     public class Employee : Person
     {
         public string EmployeeID { get; set; }
@@ -39,7 +39,7 @@ namespace HospitalOperationsSystem
         public JobRoleEnum JobRole { get; set; }
 
         public Employee(string employeeID, string username, string password, JobRoleEnum jobRole,
-                        string firstName, string lastName, string idNumber, 
+                        string firstName, string lastName, string idNumber,
                         string phoneNumber, string emailAddress, Address address)
             : base(firstName, lastName, idNumber, phoneNumber, emailAddress, address)
         {
@@ -56,13 +56,18 @@ namespace HospitalOperationsSystem
     }
 
     // DERIVED CLASS: Patient (Inheritance & Encapsulation)
-   
+
     public class Patient : Person
     {
         public MedicalAid MedicalAidDetails { get; set; }
         public List<PatientFile> FileHistory { get; set; } = new();
+        //Patient default vitals
+        public int HeartRate { get; set; } = 75;            // Standard baseline HR
+        public int OxygenLevel { get; set; } = 98;          // Standard baseline O2%
+        public bool IsCritical { get; set; } = false;       // Alert status flag
+        public string BedNumber { get; set; } = "Bed-Unassigned";
 
-        public Patient(MedicalAid medicalAidDetails, string firstName, string lastName, 
+        public Patient(MedicalAid medicalAidDetails, string firstName, string lastName,
                        string idNumber, string phoneNumber, string emailAddress, Address address)
             : base(firstName, lastName, idNumber, phoneNumber, emailAddress, address)
         {
@@ -71,7 +76,10 @@ namespace HospitalOperationsSystem
 
         public override string GetSummary()
         {
-            return $"[Patient] ID/NatID: {IDNumber} | Name: {FirstName} {LastName} | Medical Aid: {MedicalAidDetails?.CompanyName ?? "Private"} | Files Count: {FileHistory.Count}";
+            string status = IsCritical ? "[CRITICAL]" : "[STABLE]";
+            return $"[Patient {status}] ID/NatID: {IDNumber} | Name: {FirstName} {LastName} | " +
+                   $"Location: {BedNumber} | HR: {HeartRate} bpm | O2: {OxygenLevel}% | " +
+                   $"Medical Aid: {MedicalAidDetails?.CompanyName ?? "Private"}";
         }
     }
 }
