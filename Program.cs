@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace HospitalOperationsSystem
 {
@@ -9,6 +10,8 @@ namespace HospitalOperationsSystem
         public List<Patient> Patients { get; set; } = new();
         public List<Employee> Employees { get; set; } = new();
         private Employee? _currentUser = null;
+
+        private readonly OperationsEngine _engine = new();
 
         public static void Main(string[] args)
         {
@@ -30,7 +33,21 @@ namespace HospitalOperationsSystem
                 Console.Write("Press Enter to continue...");
             };
 
-            // Instantiate a standard C# Thread
+            manager._engine.OnTaskCompleted += (sender, message) =>
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"\n[EVENT: TASK SUCCESS] {message}");
+                Console.ResetColor();
+            };
+
+            manager._engine.OnResourceFailed += (sender, errorMessage) =>
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n[EVENT: TASK FAILED] {errorMessage}");
+                Console.ResetColor();
+            };
+
+            // Instantiating a Thread
             Thread monitorThread = new Thread(() => monitor.StartMonitoring(manager.Patients, cts.Token))
             {
                 IsBackground = true // Ensures thread terminates automatically if the process shuts down
@@ -147,26 +164,37 @@ namespace HospitalOperationsSystem
             }
         }
         // Handles domain exceptions and prevents application crashes
-        private void ExecuteSafeOperation(Action action)
+        private void ExecuteSafeOperation(Action action, string taskName = "Operation")
         {
             try
             {
                 action();
+                // Trigger Task Success Event
+                _engine.RaiseTaskCompleted($"'{taskName}' processed without errors.");
             }
             catch (ResourceLimitExceededException ex)
             {
+                // Trigger Resource Failure Event
+                _engine.RaiseResourceFailed($"[Resource Limit Exceeded] {ex.Message}");
+
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n[Resource Limit Has Been Reached] {ex.Message}");
                 Console.ResetColor();
             }
             catch (InvalidSystemStateException ex)
             {
+                // Trigger Domain Rule Failure Event
+                _engine.RaiseResourceFailed($"[Domain Rule Violation] {ex.Message}");
+
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"\n[Domain Rule Violation] {ex.Message}");
                 Console.ResetColor();
             }
             catch (Exception ex)
             {
+                // Trigger Unexpected Exception Event
+                _engine.RaiseResourceFailed($"[Unexpected Error] {ex.Message}");
+
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n[UNEXPECTED ERROR] {ex.Message}");
                 Console.ResetColor();
@@ -224,14 +252,15 @@ namespace HospitalOperationsSystem
                 newPatient.ProcessAdmission(_currentUser?.EmployeeID ?? "EMP-101", "Initial Admission");
 
                 Patients.Add(newPatient);
-            
 
-               Console.ForegroundColor = ConsoleColor.Green;
-               Console.WriteLine($"\nPatient '{firstName} {lastName}' added successfully!");
-               Console.ResetColor();
-            });
 
-            
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"\nPatient '{firstName} {lastName}' added successfully!");
+                Console.ResetColor();
+
+            }, "Patient Admission");
+
+
         }
 
         // FUNCTION 3: Delete Patients
@@ -252,7 +281,7 @@ namespace HospitalOperationsSystem
                 Console.ResetColor();
                 Console.WriteLine("Press Enter to return to main menu...");
                 Console.ReadLine();
-               
+
             }
             else
             {
@@ -271,7 +300,7 @@ namespace HospitalOperationsSystem
                         Console.WriteLine("\nPatient record removed successfully.");
                         Console.ResetColor();
 
-                    });
+                    }, "Patient Removal & Discharge");
                 }
                 else
                 {
@@ -279,10 +308,10 @@ namespace HospitalOperationsSystem
                     Console.WriteLine("Press Enter to return to main menu...");
                     Console.ReadLine();
                 }
-                
+
             }
 
-           
+
         }
 
         // FUNCTION 4: Update Patient Records
