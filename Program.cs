@@ -29,8 +29,10 @@ namespace HospitalOperationsSystem
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n\n[CRITICAL EVENT] Patient {e.PatientId} at {e.BedNumber}: {e.Message}");
+                Console.WriteLine("[CRITICAL EVENT DETECTED - Continue input here]");
+                Console.Beep(); // Audible alert for critical event
+                Console.WriteLine("");
                 Console.ResetColor();
-                Console.Write("Press Enter to continue...");
             };
 
             manager._engine.OnTaskCompleted += (sender, message) =>
