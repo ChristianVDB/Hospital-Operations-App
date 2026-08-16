@@ -34,8 +34,8 @@ namespace HospitalOperationsSystem
             {
                 try
                 {
-                    // Smart Sleep: Pauses thread for 3000ms OR wakes up instantly if canceled
-                    bool isCanceled = token.WaitHandle.WaitOne(3000);
+                    // Smart Sleep: Pauses thread for 30000ms OR wakes up instantly if canceled
+                    bool isCanceled = token.WaitHandle.WaitOne(30000);
                     if (isCanceled)
                     {
                         break; // Exit loop immediately if app is closing
