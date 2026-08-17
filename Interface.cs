@@ -2,7 +2,6 @@ using System;
 
 namespace HospitalOperationsSystem
 {
-
 	//Interface for enttities that can be monitored for vital thresholds
 	public interface IMonitorable
 	{

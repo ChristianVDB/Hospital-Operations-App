@@ -36,11 +36,13 @@ namespace HospitalOperationsSystem
                     medAid,
                     firstNames[Rnd.Next(firstNames.Length)],
                     lastNames[Rnd.Next(lastNames.Length)],
-                    $"900101500{i:D2}8",
+                    $"100200300400{i}",
                     $"071{Rnd.Next(1000000, 9999999)}",
                     $"patient{i}@gmail.com",
                     address
+                    
                 );
+
                 //Patient's vitals and designated bed number
                 patient.BedNumber = $"ICU-Bed-{100 + i}";    // Assigns Bed 101, Bed 102, Bed 103, etc.
                 patient.HeartRate = Rnd.Next(70, 95);        // Random starting heart rate

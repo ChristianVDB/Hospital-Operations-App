@@ -14,6 +14,4 @@ namespace HospitalOperationsSystem
     {
         public ResourceLimitExceededException(string message) : base(message) { }
     }
-
-
 }

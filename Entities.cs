@@ -4,7 +4,6 @@ using System.Collections.Generic;
 namespace HospitalOperationsSystem
 {
     // ABSTRACT BASE CLASS: Person (Demonstrates Abstraction & Encapsulation)
-
     public abstract class Person
     {
         public string FirstName { get; set; }
@@ -30,7 +29,6 @@ namespace HospitalOperationsSystem
     }
 
     // DERIVED CLASS: Employee (Inheritance & Encapsulation)
-
     public class Employee : Person
     {
         public string EmployeeID { get; set; }
@@ -56,11 +54,11 @@ namespace HospitalOperationsSystem
     }
 
     // DERIVED CLASS: Patient (Inheritance & Encapsulation)
-
     public class Patient : Person, IMonitorable, IProcessable
     {
         public MedicalAid MedicalAidDetails { get; set; }
         public List<PatientFile> FileHistory { get; set; } = new();
+
         //Patient default vitals
         public int HeartRate { get; set; } = 75;            // Standard baseline HR
         public int OxygenLevel { get; set; } = 98;          // Standard baseline O2%
@@ -83,7 +81,6 @@ namespace HospitalOperationsSystem
             { 
                 IsCritical = true;
                 throw new InvalidSystemStateException($"Critical vittals detected for {FirstName} {LastName}");
-
             }
             return IsCritical;
         }

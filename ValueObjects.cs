@@ -4,7 +4,6 @@ using System.Collections.Generic;
 namespace HospitalOperationsSystem
 {
     // VALUE OBJECT: Address
-  
     public class Address
     {
         public string Street { get; set; }
@@ -24,7 +23,6 @@ namespace HospitalOperationsSystem
     }
 
     // VALUE OBJECT: MedicalAid
-    
     public class MedicalAid
     {
         public string CompanyName { get; set; }
@@ -49,7 +47,6 @@ namespace HospitalOperationsSystem
     }
 
     // VALUE OBJECT: BillingItem
-   
     public class BillingItem
     {
         public string Description { get; set; }
@@ -65,7 +62,6 @@ namespace HospitalOperationsSystem
     }
 
     // DOMAIN ENTITY / VALUE OBJECT: PatientFile
-   
     public class PatientFile
     {
         public DateTime AdmissionDate { get; set; }

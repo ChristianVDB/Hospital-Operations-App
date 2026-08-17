@@ -19,6 +19,5 @@ namespace HospitalOperationsSystem
         {
             OnResourceFailed?.Invoke(this, errorMessage);
         }
-
     }
 }

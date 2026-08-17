@@ -74,15 +74,13 @@ namespace HospitalOperationsSystem
             monitorThread.Join(1000); // Give thread up to 1 second to exit gracefully
         }
 
-
         // FUNCTION 1: Authentication
-
         public bool Authentication()
         {
             int attempts = 0;
+
             while (attempts < 3)
             {
-                Console.Clear();
                 Console.WriteLine("---------------------------------------------------");
                 Console.WriteLine("      HOSPITAL MANAGEMENT SYSTEM - LOGIN         ");
                 Console.WriteLine("---------------------------------------------------");
@@ -116,10 +114,10 @@ namespace HospitalOperationsSystem
         }
 
         // MENU NAVIGATION
-
         public void MenuNavigation()
         {
             bool running = true;
+
             while (running)
             {
                 Console.Clear();
@@ -137,24 +135,24 @@ namespace HospitalOperationsSystem
 
                 string choice = Console.ReadLine() ?? "";
 
-                switch (choice)
+                switch ((MenuOption)int.Parse(choice))
                 {
-                    case "1":
+                    case MenuOption.AddNewPatient:
                         AddNewPatient();
                         break;
-                    case "2":
+                    case MenuOption.DeletePatient:
                         DeletePatient();
                         break;
-                    case "3":
+                    case MenuOption.UpdatePatientRecord:
                         UpdatePatientRecord();
                         break;
-                    case "4":
+                    case MenuOption.ViewPatientRecords:
                         ViewPatientRecords();
                         break;
-                    case "5":
+                    case MenuOption.SearchPatientFile:
                         SearchPatientFile();
                         break;
-                    case "6":
+                    case MenuOption.Exit:
                         running = false;
                         Console.WriteLine("\nLogging out... Goodbye!");
                         break;
@@ -165,6 +163,7 @@ namespace HospitalOperationsSystem
                 }
             }
         }
+
         // Handles domain exceptions and prevents application crashes
         private void ExecuteSafeOperation(Action action, string taskName = "Operation")
         {
@@ -210,41 +209,229 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 2: Add New Patients
-
         private void AddNewPatient()
         {
             Console.Clear();
+        returnFirstName: //Label to return to if validation fails
             Console.WriteLine("--- ADD NEW PATIENT ---");
-
             Console.Write("Enter First Name: ");
             string firstName = Console.ReadLine() ?? "";
 
+            // Validadting that the user entered a value and not NULL
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("First name is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnFirstName; // Returning to the label to re-prompt for first name
+            }
+            Console.Clear();
+
+        returnLastName:
+            Console.WriteLine("--- ADD NEW PATIENT ---");
             Console.Write("Enter Last Name: ");
             string lastName = Console.ReadLine() ?? "";
 
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Last name is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnLastName;
+            }
+            Console.Clear();
+
+        returnIDNum:
+            Console.WriteLine("--- ADD NEW PATIENT ---");
             Console.Write("Enter ID Number: ");
             string idNumber = Console.ReadLine() ?? "";
 
-            Console.Write("Enter Phone Number: ");
-            string phone = Console.ReadLine() ?? "";
+            //Validating that the value entered is not NUll, is 13 digits long, and is numbers
+            if (string.IsNullOrWhiteSpace(idNumber) || idNumber.Length != 13 || !idNumber.All(char.IsDigit)) 
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid ID number. Please enter a 13-digit.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnIDNum;
+            }
+            Console.Clear();
 
+        returnPhoneNum:
+            Console.WriteLine("--- ADD NEW PATIENT ---");
+            Console.Write("Enter Phone Number: ");
+            string phoneNum = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(phoneNum) || phoneNum.Length != 10 || !phoneNum.All(char.IsDigit))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid phone number. Please enter a 10-digit number.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnPhoneNum;
+            }
+            Console.Clear();
+
+        returnEmailAdd:
+            Console.WriteLine("--- ADD NEW PATIENT ---");
             Console.Write("Enter Email Address: ");
             string email = Console.ReadLine() ?? "";
 
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Email Address is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnEmailAdd;
+            }
+            Console.Clear();
+
+        returnStreet:
             Console.WriteLine("\n-- Address Details --");
-            Console.Write("Street: "); string street = Console.ReadLine() ?? "";
-            Console.Write("Suburb: "); string suburb = Console.ReadLine() ?? "";
-            Console.Write("City: "); string city = Console.ReadLine() ?? "";
-            Console.Write("Province: "); string province = Console.ReadLine() ?? "";
+            Console.Write("Street: ");
+            string street = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(street))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Street is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnStreet;
+            }
+            Console.Clear();
+
+        returnSuburb:
+            Console.WriteLine("\n-- Address Details --");
+            Console.Write("Suburb: ");
+            string suburb = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(suburb))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Suburb is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnSuburb;
+            }
+            Console.Clear();
+
+        returnCity:
+            Console.WriteLine("\n-- Address Details --");
+            Console.Write("City: ");
+            string city = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(city))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("City is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnCity;
+            }
+            Console.Clear();
+
+        returnProvince:
+            Console.WriteLine("\n-- Address Details --");
+            Console.Write("Province: ");
+            string province = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(province))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Province is required.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                Console.Clear();
+                goto returnProvince;
+            }
+            Console.Clear();
+
             var address = new Address(street, suburb, city, province);
 
-            Console.WriteLine("\n-- Medical Aid Details --");
-            Console.Write("Company Name: "); string medCompany = Console.ReadLine() ?? "Private";
-            Console.Write("Plan Name: "); string planName = Console.ReadLine() ?? "N/A";
-            Console.Write("Policy Number: "); string policyNum = Console.ReadLine() ?? "N/A";
-            var medAid = new MedicalAid(medCompany, planName, policyNum, firstName, lastName, idNumber);
+            Console.Write("Does the patient have a medical aid? (y/n): ");
+            string hasMedAid = Console.ReadLine() ?? "";
 
-            var newPatient = new Patient(medAid, firstName, lastName, idNumber, phone, email, address);
+            // Default to Private payer if user indicates no medical aid
+            MedicalAid medAid = new MedicalAid("Private", "N/A", "N/A", firstName, lastName, idNumber);
+
+            if (hasMedAid.Trim().ToLower() == "y")
+            {
+            returnCumpanyName:
+                Console.WriteLine("\n-- Medical Aid Details --");
+                Console.Write("Company Name: ");
+                string medCompany = Console.ReadLine() ?? "Private";
+
+                if (string.IsNullOrWhiteSpace(medCompany))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Medical Aid Company Name is required.");
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to return...");
+                    Console.ReadLine();
+                    Console.Clear();
+                    goto returnCumpanyName;
+                }
+                Console.Clear();
+                
+            returnPlanName:
+                Console.WriteLine("\n-- Medical Aid Details --");
+                Console.Write("Plan Name: ");
+                string planName = Console.ReadLine() ?? "N/A";
+
+                if (string.IsNullOrWhiteSpace(planName))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Plan Name is required.");
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to return...");
+                    Console.ReadLine();
+                    Console.Clear();
+                    goto returnPlanName;
+                }
+                Console.Clear();
+
+            returnPolicyName:
+                Console.WriteLine("\n-- Medical Aid Details --");
+                Console.Write("Policy Number: ");
+                string policyNum = Console.ReadLine() ?? "N/A";
+
+                if (string.IsNullOrWhiteSpace(policyNum))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Policy Number is required.");
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to return...");
+                    Console.ReadLine();
+                    Console.Clear();
+                    goto returnPolicyName;
+                }
+                Console.Clear();
+
+                medAid = new MedicalAid(medCompany, planName, policyNum, firstName, lastName, idNumber);
+            }
+
+            var newPatient = new Patient(medAid, firstName, lastName, idNumber, phoneNum, email, address);
 
             newPatient.BedNumber = $"Ward-Bed-{Patients.Count + 1}"; //Auto generated bednumber
 
@@ -254,25 +441,36 @@ namespace HospitalOperationsSystem
                 newPatient.ProcessAdmission(_currentUser?.EmployeeID ?? "EMP-101", "Initial Admission");
 
                 Patients.Add(newPatient);
-
+                SaveState();
+                // HERE IS THE LOGGING CALL
+                // We just call the static method and pass a descriptive message.
+                Logger.Log($"Added patient ID: {patient.IDNumber}");
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"\nPatient '{firstName} {lastName}' added successfully!");
                 Console.ResetColor();
 
             }, "Patient Admission");
-
-
         }
 
         // FUNCTION 3: Delete Patients
-
         private void DeletePatient()
         {
             Console.Clear();
             Console.WriteLine("--- DELETE PATIENT RECORD (DECEASED / REMOVAL) ---");
+        returnIDNum:
             Console.Write("Enter Patient ID Number to delete: ");
             string idNum = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(idNum) || idNum.Length != 13 || !idNum.All(char.IsDigit))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid ID number. Please enter a 13-digit.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                goto returnIDNum;
+            }
 
             var patient = Patients.FirstOrDefault(p => p.IDNumber.Equals(idNum, StringComparison.OrdinalIgnoreCase));
 
@@ -283,7 +481,6 @@ namespace HospitalOperationsSystem
                 Console.ResetColor();
                 Console.WriteLine("Press Enter to return to main menu...");
                 Console.ReadLine();
-
             }
             else
             {
@@ -310,20 +507,27 @@ namespace HospitalOperationsSystem
                     Console.WriteLine("Press Enter to return to main menu...");
                     Console.ReadLine();
                 }
-
             }
-
-
         }
 
         // FUNCTION 4: Update Patient Records
-
         private void UpdatePatientRecord()
         {
             Console.Clear();
             Console.WriteLine("--- UPDATE PATIENT RECORD ---");
+        returnIDNum:
             Console.Write("Enter Patient ID Number: ");
             string idNum = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(idNum) || idNum.Length != 13 || !idNum.All(char.IsDigit))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid ID number. Please enter a 13-digit.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                goto returnIDNum;
+            }
 
             var patient = Patients.FirstOrDefault(p => p.IDNumber.Equals(idNum, StringComparison.OrdinalIgnoreCase));
 
@@ -336,20 +540,25 @@ namespace HospitalOperationsSystem
             else
             {
                 Console.WriteLine($"Updating Patient: {patient.FirstName} {patient.LastName}");
+            returnPhoneNum:
                 Console.Write("Enter New Phone Number (leave blank to keep current): ");
-                string phone = Console.ReadLine() ?? "";
-                if (!string.IsNullOrWhiteSpace(phone)) patient.PhoneNumber = phone;
+                string phoneNum = Console.ReadLine() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(phoneNum)) patient.PhoneNumber = phoneNum;
 
                 Console.Write("Enter New Email (leave blank to keep current): ");
                 string email = Console.ReadLine() ?? "";
+
                 if (!string.IsNullOrWhiteSpace(email)) patient.EmailAddress = email;
 
                 Console.Write("Add new diagnosis to current active file? (y/n): ");
                 string addDiag = Console.ReadLine() ?? "";
+
                 if (addDiag.ToLower() == "y")
                 {
                     Console.Write("Enter Diagnosis text: ");
                     string diagText = Console.ReadLine() ?? "";
+
                     if (!string.IsNullOrWhiteSpace(diagText) && patient.FileHistory.Count > 0)
                     {
                         patient.FileHistory.Last().Diagnosis.Add(diagText);
@@ -366,11 +575,11 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 5: View Patient Records
-
         private void ViewPatientRecords()
         {
             Console.Clear();
             Console.WriteLine("--- VIEW ALL PATIENT RECORDS ---");
+
             if (Patients.Count == 0)
             {
                 Console.WriteLine("No patient records available.");
@@ -391,15 +600,25 @@ namespace HospitalOperationsSystem
         }
 
         // FUNCTION 6: Search Patient File
-
         private void SearchPatientFile()
         {
             Console.Clear();
             Console.WriteLine("--- SEARCH PATIENT FILE ---");
+        returnIDNum:
             Console.Write("Enter Patient National ID Number: ");
-            string query = Console.ReadLine() ?? "";
+            string idNum = Console.ReadLine() ?? "";
 
-            var patient = Patients.FirstOrDefault(p => p.IDNumber.Equals(query, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(idNum) || idNum.Length != 13 || !idNum.All(char.IsDigit))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Invalid ID number. Please enter a 13-digit.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return...");
+                Console.ReadLine();
+                goto returnIDNum;
+            }
+
+            var patient = Patients.FirstOrDefault(p => p.IDNumber.Equals(idNum, StringComparison.OrdinalIgnoreCase));
 
             if (patient == null)
             {
@@ -419,6 +638,7 @@ namespace HospitalOperationsSystem
 
                 Console.WriteLine("\n--- Admission File History ---");
                 int fileIndex = 1;
+
                 foreach (var file in patient.FileHistory)
                 {
                     Console.WriteLine($"\n[File #{fileIndex++}] Admission Date: {file.AdmissionDate}");
@@ -426,6 +646,7 @@ namespace HospitalOperationsSystem
                     Console.WriteLine($"  Current Medications: {string.Join(", ", file.CurrentMedication)}");
                     Console.WriteLine($"  Assigned Doctor IDs: {string.Join(", ", file.AssignedDoctorID)}");
                     Console.WriteLine("  Billing Items:");
+
                     foreach (var item in file.BillingItems)
                     {
                         Console.WriteLine($"    - {item.Description}: R{item.Cost:F2} (Date: {item.DateIncurred:yyyy-MM-dd})");
