@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -17,6 +18,14 @@ namespace HospitalOperationsSystem
         {
             var manager = new HospitalManager();
 
+            // Initialize logging
+            try
+            {
+                Logger.Init(Path.Combine(AppContext.BaseDirectory, "logs"), LogLevel.Debug);
+                Logger.Info("Application starting");
+            }
+            catch { }
+
             // Seed initial system state
             manager.Employees.AddRange(DataGenerator.GenerateEmployees());
             manager.Patients.AddRange(DataGenerator.GeneratePatients(5));
@@ -27,8 +36,10 @@ namespace HospitalOperationsSystem
             // Subscribe event handler
             monitor.OnCriticalVitalsDetected += (sender, e) =>
             {
+                var msg = $"[CRITICAL EVENT] Patient {e.PatientId} at {e.BedNumber}: {e.Message}";
+                Logger.Error(msg);
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"\n\n[CRITICAL EVENT] Patient {e.PatientId} at {e.BedNumber}: {e.Message}");
+                Console.WriteLine($"\n\n{msg}");
                 Console.WriteLine("[CRITICAL EVENT DETECTED - Continue input here]");
                 Console.Beep(); // Audible alert for critical event
                 Console.WriteLine("");
@@ -37,6 +48,7 @@ namespace HospitalOperationsSystem
 
             manager._engine.OnTaskCompleted += (sender, message) =>
             {
+                Logger.Info($"Task completed: {message}");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"\n[EVENT: TASK SUCCESS] {message}");
                 Console.ResetColor();
@@ -44,6 +56,7 @@ namespace HospitalOperationsSystem
 
             manager._engine.OnResourceFailed += (sender, errorMessage) =>
             {
+                Logger.Error($"Engine reported failure: {errorMessage}");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n[EVENT: TASK FAILED] {errorMessage}");
                 Console.ResetColor();
@@ -72,6 +85,12 @@ namespace HospitalOperationsSystem
 
             cts.Cancel();           // Signal thread to stop
             monitorThread.Join(1000); // Give thread up to 1 second to exit gracefully
+            try
+            {
+                Logger.Info("Application shutting down");
+                Logger.Shutdown();
+            }
+            catch { }
         }
 
         // FUNCTION 1: Authentication
@@ -95,6 +114,7 @@ namespace HospitalOperationsSystem
                 if (emp != null)
                 {
                     _currentUser = emp;
+                    Logger.Info($"User '{emp.Username}' logged in ({emp.FirstName} {emp.LastName}).");
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"\nLogin Successful! Welcome, {emp.FirstName} {emp.LastName} ({emp.JobRole}).");
                     Console.ResetColor();
@@ -104,11 +124,13 @@ namespace HospitalOperationsSystem
                 }
 
                 attempts++;
+                Logger.Warn($"Failed login attempt for username '{username}'. Attempts remaining: {3 - attempts}");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\nInvalid username or password. Attempts remaining: {3 - attempts}");
                 Console.ResetColor();
                 Console.WriteLine("Press Enter to try again...");
                 Console.ReadLine();
+                Console.Clear();
             }
             return false;
         }
@@ -172,11 +194,13 @@ namespace HospitalOperationsSystem
                 action();
                 // Trigger Task Success Event
                 _engine.RaiseTaskCompleted($"'{taskName}' processed without errors.");
+                Logger.Info($"Task '{taskName}' completed successfully.");
             }
             catch (ResourceLimitExceededException ex)
             {
                 // Trigger Resource Failure Event
                 _engine.RaiseResourceFailed($"[Resource Limit Exceeded] {ex.Message}");
+                Logger.Error($"Resource limit exceeded during '{taskName}'", ex);
 
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n[Resource Limit Has Been Reached] {ex.Message}");
@@ -186,6 +210,7 @@ namespace HospitalOperationsSystem
             {
                 // Trigger Domain Rule Failure Event
                 _engine.RaiseResourceFailed($"[Domain Rule Violation] {ex.Message}");
+                Logger.Warn($"Domain rule violation during '{taskName}': {ex.Message}");
 
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine($"\n[Domain Rule Violation] {ex.Message}");
@@ -195,6 +220,7 @@ namespace HospitalOperationsSystem
             {
                 // Trigger Unexpected Exception Event
                 _engine.RaiseResourceFailed($"[Unexpected Error] {ex.Message}");
+                Logger.Error($"Unexpected error during '{taskName}'", ex);
 
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"\n[UNEXPECTED ERROR] {ex.Message}");
@@ -252,16 +278,29 @@ namespace HospitalOperationsSystem
             Console.Write("Enter ID Number: ");
             string idNumber = Console.ReadLine() ?? "";
 
+
             //Validating that the value entered is not NUll, is 13 digits long, and is numbers
             if (string.IsNullOrWhiteSpace(idNumber) || idNumber.Length != 13 || !idNumber.All(char.IsDigit)) 
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Invalid ID number. Please enter a 13-digit.");
+                Console.WriteLine("Invalid ID number. Please enter a 13-digit number.");
                 Console.ResetColor();
                 Console.WriteLine("Press Enter to return...");
                 Console.ReadLine();
                 Console.Clear();
                 goto returnIDNum;
+            }
+
+            // Check if ID number already exists in the system
+            if (Patients.Any(p => p.IDNumber.Equals(idNumber, StringComparison.OrdinalIgnoreCase)))
+            {
+                Logger.Warn($"Attempted to add patient with existing ID '{idNumber}'");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\nA patient with this ID number already exists in the system.");
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to return to main menu...");
+                Console.ReadLine();
+                return; // Redirect back to main menu
             }
             Console.Clear();
 
@@ -373,7 +412,7 @@ namespace HospitalOperationsSystem
             string hasMedAid = Console.ReadLine() ?? "";
 
             // Default to Private payer if user indicates no medical aid
-            MedicalAid medAid = new MedicalAid("Private", "N/A", "N/A", firstName, lastName, idNumber);
+            MedicalAid medAid = new MedicalAid("Private", "N/A", "N/A", "N/A", "N/A", "N/A");
 
             if (hasMedAid.Trim().ToLower() == "y")
             {
@@ -428,7 +467,58 @@ namespace HospitalOperationsSystem
                 }
                 Console.Clear();
 
-                medAid = new MedicalAid(medCompany, planName, policyNum, firstName, lastName, idNumber);
+            returnMainMemFname:
+                Console.WriteLine("\n-- Medical Aid Details --");
+                Console.Write("Main Member First Name: ");
+                string mainMemFname = Console.ReadLine() ?? "N/A";
+
+                if (string.IsNullOrWhiteSpace(mainMemFname))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Main Member First Name is required.");
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to return...");
+                    Console.ReadLine();
+                    Console.Clear();
+                    goto returnMainMemFname;
+                }
+                Console.Clear();
+
+            returnMainMemLname:
+                Console.WriteLine("\n-- Medical Aid Details --");
+                Console.Write("Main Member Last Name: ");
+                string mainMemLname = Console.ReadLine() ?? "N/A";
+
+                if (string.IsNullOrWhiteSpace(mainMemLname))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Main Member Last Name is required.");
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to return...");
+                    Console.ReadLine();
+                    Console.Clear();
+                    goto returnMainMemLname;
+                }
+                Console.Clear();
+
+            returnMainMemID:
+                Console.WriteLine("\n-- Medical Aid Details --");
+                Console.Write("Main Member ID Number: ");
+                string mainMemID = Console.ReadLine() ?? "N/A";
+
+                if (string.IsNullOrWhiteSpace(mainMemID) || mainMemID.Length != 13 || !mainMemID.All(char.IsDigit))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid ID number. Please enter a 13-digit number.");
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to return...");
+                    Console.ReadLine();
+                    Console.Clear();
+                    goto returnMainMemID;
+                }
+                Console.Clear();
+
+                medAid = new MedicalAid(medCompany, planName, policyNum, mainMemFname, mainMemLname, mainMemID);
             }
 
             var newPatient = new Patient(medAid, firstName, lastName, idNumber, phoneNum, email, address);
@@ -441,10 +531,6 @@ namespace HospitalOperationsSystem
                 newPatient.ProcessAdmission(_currentUser?.EmployeeID ?? "EMP-101", "Initial Admission");
 
                 Patients.Add(newPatient);
-                SaveState();
-                // HERE IS THE LOGGING CALL
-                // We just call the static method and pass a descriptive message.
-                Logger.Log($"Added patient ID: {patient.IDNumber}");
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"\nPatient '{firstName} {lastName}' added successfully!");
@@ -540,7 +626,6 @@ namespace HospitalOperationsSystem
             else
             {
                 Console.WriteLine($"Updating Patient: {patient.FirstName} {patient.LastName}");
-            returnPhoneNum:
                 Console.Write("Enter New Phone Number (leave blank to keep current): ");
                 string phoneNum = Console.ReadLine() ?? "";
 

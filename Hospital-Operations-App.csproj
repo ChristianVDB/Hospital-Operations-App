@@ -1,8 +1,16 @@
+
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
+	<PropertyGroup>
 	<OutputType>Exe</OutputType>
-	<TargetFramework>net8.0</TargetFramework>
+	<TargetFramework>net10.0</TargetFramework>
+	<!-- Retargeted to net10.0 to match installed .NET 10 SDK -->
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
-  </PropertyGroup>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="HospitalOps.Tests\UTest1.cs" />
+	</ItemGroup>
+  <!-- Exclude test projects and other non-production code from the SDK implicit Compile items -->
 </Project>

@@ -1,4 +1,3 @@
 <Solution>
-  <Project Path="HospitalOps.Test/HospitalOps.Test.csproj" />
-  <Project Path="TestProject1/TestProject1.csproj" />
+  <Project Path="HospitalOps.Tests/HospitalOps.Tests.csproj" Id="d862546d-dfcc-411b-86af-d2ac868cad08" />
 </Solution>
