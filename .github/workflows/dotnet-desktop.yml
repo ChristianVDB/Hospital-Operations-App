@@ -41,8 +41,7 @@ name: .NET Core Desktop
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # pull_request trigger disabled until this workflow is configured for the project
 
 jobs:
 
