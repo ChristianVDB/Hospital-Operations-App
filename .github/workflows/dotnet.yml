@@ -16,11 +16,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore Hospital-Operations-App.csproj
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build Hospital-Operations-App.csproj --no-restore --configuration Release
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        run: |
+          # Run tests only if test projects exist
+          tests=$(find . -name '*Tests.csproj' -print -quit)
+          if [ -z "$tests" ]; then
+            echo "No test projects found; skipping tests"
+          else
+            dotnet test --no-build --configuration Release --verbosity normal
+          fi
       - name: Publish (artifact)
         if: github.ref == 'refs/heads/main'
         run: |
